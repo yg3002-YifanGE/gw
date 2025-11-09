@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+
+# Env
+.env
+
+# OS files
+.DS_Store
+
+# App runtime data
+data/
+
+# Index artifacts (kept under data/)
+*.npy
+*.pkl
+meta.json
+
