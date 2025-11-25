@@ -1,1 +1,46 @@
+# Project files
 /Project Proposal.docx
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Training data and models (too large for git)
+ai_interview_coach/data/training_data/*.json
+ai_interview_coach/data/training_data/*.csv
+ai_interview_coach/data/training_data/*.tsv
+ai_interview_coach/data/index/
+ai_interview_coach/data/sessions.json
+ai_interview_coach/checkpoints/
+ai_interview_coach/evaluation_results/
+
+# Keep directory structure but ignore contents
+!ai_interview_coach/data/training_data/.gitkeep
+!ai_interview_coach/data/index/.gitkeep
+!ai_interview_coach/checkpoints/.gitkeep
+!ai_interview_coach/evaluation_results/.gitkeep

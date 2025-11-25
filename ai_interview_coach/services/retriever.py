@@ -71,7 +71,15 @@ class TfIdfRetriever:
 
     def build_index(self) -> Dict[str, Any]:
         docs = self._read_dataset()
-        texts = [d.text for d in docs]
+        
+        # Filter out very short documents first
+        valid_docs = [d for d in docs if len(d.text.split()) >= 2]
+        
+        if len(valid_docs) < 2:
+            raise ValueError(f"Not enough valid documents (need at least 2, got {len(valid_docs)})")
+        
+        texts = [d.text for d in valid_docs]
+        
         def heuristics(doc: Document) -> Dict[str, str]:
             text = (doc.text or "").lower()
             # qtype heuristic
@@ -98,9 +106,18 @@ class TfIdfRetriever:
             "topic": d.topic,
             "text": d.text,
             **heuristics(d)
-        } for d in docs]
-
-        vectorizer = TfidfVectorizer(stop_words="english")
+        } for d in valid_docs]
+        
+        # Use TfidfVectorizer with min_df to avoid empty vocabulary
+        # min_df=1 means a word must appear in at least 1 document (no filtering)
+        # max_features limits vocabulary size for efficiency
+        # ngram_range helps with short texts
+        vectorizer = TfidfVectorizer(
+            stop_words="english",
+            min_df=1,  # Accept words that appear in at least 1 document
+            max_features=5000,  # Limit vocabulary size
+            ngram_range=(1, 2)  # Use unigrams and bigrams for better matching
+        )
         matrix = vectorizer.fit_transform(texts)
         with open(self.vectorizer_path, "wb") as f:
             pickle.dump(vectorizer, f)
@@ -111,7 +128,7 @@ class TfIdfRetriever:
         self.vectorizer = vectorizer
         self.matrix = matrix.toarray().astype(np.float32)
         self.meta = meta
-        return {"docs_indexed": len(docs)}
+        return {"docs_indexed": len(valid_docs), "total_docs": len(docs), "filtered": len(docs) - len(valid_docs)}
 
     def _ensure_loaded(self) -> None:
         if self.vectorizer is not None and self.matrix is not None and self.meta:
