@@ -36,7 +36,7 @@ def get_model():
             return None
         
         model = BERTAnswerScorer()
-        checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.eval()
         

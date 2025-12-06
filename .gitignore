@@ -37,10 +37,17 @@ ai_interview_coach/data/training_data/*.tsv
 ai_interview_coach/data/index/
 ai_interview_coach/data/sessions.json
 ai_interview_coach/checkpoints/
-ai_interview_coach/evaluation_results/
+
+# Evaluation results - include visualization files but exclude large data
+# Allow specific evaluation result files (small, needed for documentation)
+!ai_interview_coach/evaluation_results/evaluation_plots.png
+!ai_interview_coach/evaluation_results/evaluation_results.json
+!ai_interview_coach/evaluation_results/predictions.json
+!ai_interview_coach/evaluation_results/.gitkeep
+# Ignore everything else in evaluation_results
+ai_interview_coach/evaluation_results/*
 
 # Keep directory structure but ignore contents
 !ai_interview_coach/data/training_data/.gitkeep
 !ai_interview_coach/data/index/.gitkeep
 !ai_interview_coach/checkpoints/.gitkeep
-!ai_interview_coach/evaluation_results/.gitkeep

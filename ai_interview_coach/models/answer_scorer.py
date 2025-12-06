@@ -21,9 +21,14 @@ class BERTAnswerScorer(nn.Module):
         super().__init__()
         
         # Load pre-trained BERT
+        import sys
+        print(f"    - Loading DistilBERT model '{model_name}' (this may take a moment if downloading)...", flush=True)
         from transformers import DistilBertModel
         self.bert = DistilBertModel.from_pretrained(model_name)
+        print("    - DistilBERT model loaded", flush=True)
+        print(f"    - Loading tokenizer '{model_name}'...", flush=True)
         self.tokenizer = BertTokenizer.from_pretrained(model_name)
+        print("    - Tokenizer loaded", flush=True)
         
         # Freeze BERT parameters if specified
         if freeze_bert:

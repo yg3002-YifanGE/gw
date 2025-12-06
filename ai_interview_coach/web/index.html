@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,70 +10,70 @@
     <div class="container">
       <h1>AI Interview Coach</h1>
       <section class="card">
-        <h2>启动会话</h2>
+        <h2>Start Session</h2>
         <div class="grid">
-          <label>目标岗位
-            <input id="role" placeholder="如：Data Scientist" />
+          <label>Target Role
+            <input id="role" placeholder="e.g., Data Scientist" />
           </label>
-          <label>Topic（从下拉选择）
+          <label>Topic (select from dropdown)
             <select id="topic">
-              <option value="">不限</option>
+              <option value="">Any</option>
             </select>
           </label>
-          <label>题型 qtype
+          <label>Question Type (qtype)
             <select id="qtype">
-              <option value="">不限</option>
+              <option value="">Any</option>
             </select>
           </label>
-          <label>难度 difficulty
+          <label>Difficulty
             <select id="difficulty">
-              <option value="">不限</option>
+              <option value="">Any</option>
             </select>
           </label>
-          <label>模式
+          <label>Mode
             <select id="mode">
-              <option value="free">自由练习</option>
-              <option value="mock">模拟面试（固定题量）</option>
+              <option value="free">Free Practice</option>
+              <option value="mock">Mock Interview (Fixed Questions)</option>
             </select>
           </label>
-          <label>题量（mock模式）
+          <label>Total Questions (mock mode)
             <input id="total" type="number" min="1" value="5" />
           </label>
         </div>
         <div class="actions">
-          <button id="startBtn">启动</button>
+          <button id="startBtn">Start</button>
           <span id="sessionInfo"></span>
         </div>
       </section>
 
       <section class="card">
-        <h2>当前问题</h2>
+        <h2>Current Question</h2>
         <div class="question" id="questionBlock">
           <div id="questionMeta"></div>
           <div id="questionText" class="mono"></div>
           <div class="actions">
-            <button id="nextBtn">获取问题</button>
-            <button id="forceBtn">换一题（force_new）</button>
+            <button id="nextBtn">Get Question</button>
+            <button id="forceBtn">New Question (force_new)</button>
           </div>
         </div>
       </section>
 
       <section class="card">
-        <h2>作答</h2>
-        <textarea id="answer" rows="6" placeholder="建议使用 STAR 结构回答：Situation, Task, Action, Result"></textarea>
+        <h2>Submit Answer</h2>
+        <textarea id="answer" rows="6" placeholder="Use STAR structure: Situation, Task, Action, Result"></textarea>
         <div class="actions">
-          <button id="submitBtn">提交答案</button>
+          <button id="submitBtn">Submit Answer</button>
           <span id="remaining"></span>
         </div>
         <pre id="feedback"></pre>
       </section>
 
       <section class="card">
-        <h2>进度与总结</h2>
+        <h2>Progress & Summary</h2>
         <div class="actions">
-          <button id="progressBtn">查看进度</button>
-          <button id="summaryBtn">查看会后总结</button>
-          <button id="exportBtn">导出历史 JSON</button>
+          <button id="progressBtn">View Progress</button>
+          <button id="summaryBtn">View Summary</button>
+          <button id="exportBtn">Export History JSON</button>
         </div>
         <pre id="progress"></pre>
         <pre id="summary"></pre>

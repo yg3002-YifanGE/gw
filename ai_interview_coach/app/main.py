@@ -18,6 +18,7 @@ from services.sessions import SessionStore
 from services.retriever import TfIdfRetriever
 from services.eval import heuristic_feedback
 from services.llm import llm_enabled, generate_feedback_with_llm
+from services.model_eval import hybrid_feedback, model_feedback
 
 
 app = FastAPI(
@@ -134,7 +135,13 @@ def submit_answer(session_id: str, req: AnswerRequest):
     filters = cfg.get("filters") if isinstance(cfg, dict) else None
     ctx = retriever.search(q.question_text, top_k=5, filters=filters)
 
+    # Get scoring method from config (default: 'hybrid')
+    scoring_method = cfg.get("scoring_method", "hybrid") if isinstance(cfg, dict) else "hybrid"
+    model_weight = cfg.get("model_weight", 0.7) if isinstance(cfg, dict) else 0.7
+
+    # Generate feedback based on selected method
     if llm_enabled():
+        # LLM has highest priority if enabled
         prompt = (
             "You are an interview coach. Evaluate the candidate answer using the rubric.\n"
             f"Question: {q.question_text}\n"
@@ -142,8 +149,15 @@ def submit_answer(session_id: str, req: AnswerRequest):
             f"Context (related topics): {[c['text'] for c in ctx]}\n"
             "Return JSON with: overall_score (1..5), breakdown{content_relevance,technical_accuracy,communication_clarity,structure_star}, strengths[], improvements[], tips[]."
         )
-        fb = generate_feedback_with_llm(prompt) or heuristic_feedback(req.answer_text, ctx)
+        fb = generate_feedback_with_llm(prompt) or hybrid_feedback(q.question_text, req.answer_text, ctx, model_weight=model_weight)
+    elif scoring_method == "model":
+        # Model-only scoring
+        fb = model_feedback(q.question_text, req.answer_text, ctx)
+    elif scoring_method == "hybrid":
+        # Hybrid scoring (default): combines model + heuristic
+        fb = hybrid_feedback(q.question_text, req.answer_text, ctx, model_weight=model_weight)
     else:
+        # Fallback to heuristic
         fb = heuristic_feedback(req.answer_text, ctx)
 
     store.append_interaction(

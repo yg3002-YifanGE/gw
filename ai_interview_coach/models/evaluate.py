@@ -184,6 +184,8 @@ def compare_with_baseline(model, data_loader, device='cuda'):
 
 
 def main():
+    import sys
+    
     parser = argparse.ArgumentParser(description='Evaluate answer scoring model')
     parser.add_argument('--checkpoint', type=str, required=True,
                        help='Path to model checkpoint')
@@ -198,74 +200,125 @@ def main():
     
     args = parser.parse_args()
     
+    # Force output to be unbuffered
+    sys.stdout = sys.__stdout__
+    sys.stderr = sys.__stderr__
+    
+    print("="*50, flush=True)
+    print("Starting Evaluation", flush=True)
+    print("="*50, flush=True)
+    print(f"Device: {args.device}", flush=True)
+    print(f"Batch size: {args.batch_size}", flush=True)
+    print(f"Data type: {args.data_type}", flush=True)
+    print(f"Output directory: {args.output_dir}", flush=True)
+    print("", flush=True)
+    
     os.makedirs(args.output_dir, exist_ok=True)
     
-    print(f"Loading model from {args.checkpoint}")
+    print(f"[1/4] Loading model from {args.checkpoint}...", flush=True)
+    try:
+        # Load model
+        print("  - Initializing BERTAnswerScorer...", flush=True)
+        model = BERTAnswerScorer()
+        print("  - Model initialized successfully", flush=True)
+        
+        print(f"  - Loading checkpoint from {args.checkpoint}...", flush=True)
+        # Use weights_only=False for compatibility with checkpoints that may contain numpy objects
+        checkpoint = torch.load(args.checkpoint, map_location=args.device, weights_only=False)
+        print("  - Checkpoint loaded successfully", flush=True)
+        
+        print("  - Loading model state dict...", flush=True)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        print("  - State dict loaded successfully", flush=True)
+        
+        print(f"  - Moving model to {args.device}...", flush=True)
+        model.to(args.device)
+        print("  - Model moved to device successfully", flush=True)
+        print("[1/4] Model loading completed!\n", flush=True)
+    except Exception as e:
+        print(f"ERROR loading model: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+        return
     
-    # Load model
-    model = BERTAnswerScorer()
-    checkpoint = torch.load(args.checkpoint, map_location=args.device)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.to(args.device)
-    
-    print(f"Loading data from {args.data_path}")
-    
-    # Create data loader
-    if args.data_type == 'asap':
-        from data_loader import create_data_loaders
-        loaders = create_data_loaders(
-            asap_path=args.data_path,
-            batch_size=args.batch_size
-        )
-        test_loader = loaders['test']
-    else:
-        from data_loader import create_data_loaders
-        loaders = create_data_loaders(
-            interview_path=args.data_path,
-            batch_size=args.batch_size
-        )
-        test_loader = loaders['test']
+    print(f"[2/4] Loading data from {args.data_path}...", flush=True)
+    try:
+        # Create data loader
+        if args.data_type == 'asap':
+            print("  - Creating ASAP data loaders...", flush=True)
+            from data_loader import create_data_loaders
+            loaders = create_data_loaders(
+                asap_path=args.data_path,
+                batch_size=args.batch_size
+            )
+            test_loader = loaders['test']
+        else:
+            print("  - Creating interview data loaders...", flush=True)
+            from data_loader import create_data_loaders
+            loaders = create_data_loaders(
+                interview_path=args.data_path,
+                batch_size=args.batch_size
+            )
+            test_loader = loaders['test']
+        print(f"  - Test loader created with {len(test_loader)} batches", flush=True)
+        print("[2/4] Data loading completed!\n", flush=True)
+    except Exception as e:
+        print(f"ERROR loading data: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+        return
     
     # Evaluate
-    print("\nEvaluating model...")
-    results, predictions, targets, breakdowns, texts = evaluate_model(
-        model, test_loader, args.device
-    )
+    print("[3/4] Evaluating model...", flush=True)
+    try:
+        results, predictions, targets, breakdowns, texts = evaluate_model(
+            model, test_loader, args.device
+        )
+        print("[3/4] Evaluation completed!\n", flush=True)
+    except Exception as e:
+        print(f"ERROR during evaluation: {e}", flush=True)
+        import traceback
+        traceback.print_exc()
+        return
     
     # Print results
-    print("\n" + "="*50)
-    print("Evaluation Results")
-    print("="*50)
-    print(f"Number of samples: {results['num_samples']}")
-    print(f"MAE: {results['mae']:.4f}")
-    print(f"RMSE: {results['rmse']:.4f}")
-    print(f"Correlation: {results['correlation']:.4f}")
-    print(f"\nAccuracy:")
-    print(f"  Within ±0.5: {results['accuracy']['±0.5']:.2%}")
-    print(f"  Within ±1.0: {results['accuracy']['±1.0']:.2%}")
-    print(f"  Within ±1.5: {results['accuracy']['±1.5']:.2%}")
+    print("[4/4] Saving results...", flush=True)
+    print("\n" + "="*50, flush=True)
+    print("Evaluation Results", flush=True)
+    print("="*50, flush=True)
+    print(f"Number of samples: {results['num_samples']}", flush=True)
+    print(f"MAE: {results['mae']:.4f}", flush=True)
+    print(f"RMSE: {results['rmse']:.4f}", flush=True)
+    print(f"Correlation: {results['correlation']:.4f}", flush=True)
+    print(f"\nAccuracy:", flush=True)
+    print(f"  Within ±0.5: {results['accuracy']['±0.5']:.2%}", flush=True)
+    print(f"  Within ±1.0: {results['accuracy']['±1.0']:.2%}", flush=True)
+    print(f"  Within ±1.5: {results['accuracy']['±1.5']:.2%}", flush=True)
     
-    print(f"\nDimension Statistics:")
+    print(f"\nDimension Statistics:", flush=True)
     for dim, stats in results['dimension_stats'].items():
-        print(f"  {dim.capitalize()}:")
-        print(f"    Mean: {stats['mean']:.2f}, Std: {stats['std']:.2f}")
+        print(f"  {dim.capitalize()}:", flush=True)
+        print(f"    Mean: {stats['mean']:.2f}, Std: {stats['std']:.2f}", flush=True)
     
     # Save results
+    print("\n  - Saving evaluation results...", flush=True)
     results_path = os.path.join(args.output_dir, 'evaluation_results.json')
     with open(results_path, 'w') as f:
         json.dump(results, f, indent=2)
-    print(f"\nSaved results to {results_path}")
+    print(f"  - Saved results to {results_path}", flush=True)
     
     # Create plots
+    print("  - Creating plots...", flush=True)
     plot_path = os.path.join(args.output_dir, 'evaluation_plots.png')
     plot_results(predictions, targets, plot_path)
     
     # Save predictions
+    print("  - Saving sample predictions...", flush=True)
     predictions_path = os.path.join(args.output_dir, 'predictions.json')
     predictions_data = []
     for i in range(min(100, len(predictions))):  # Save first 100
         predictions_data.append({
-            'text_snippet': texts[i],
+            'text_snippet': texts[i] if i < len(texts) else '',
             'predicted_score': float(predictions[i]),
             'actual_score': float(targets[i]),
             'error': float(predictions[i] - targets[i]),
@@ -279,11 +332,12 @@ def main():
     
     with open(predictions_path, 'w') as f:
         json.dump(predictions_data, f, indent=2)
-    print(f"Saved sample predictions to {predictions_path}")
+    print(f"  - Saved sample predictions to {predictions_path}", flush=True)
     
-    print("\n" + "="*50)
-    print("Evaluation completed!")
-    print("="*50)
+    print("[4/4] Results saved!\n", flush=True)
+    print("="*50, flush=True)
+    print("Evaluation completed successfully!", flush=True)
+    print("="*50, flush=True)
 
 
 if __name__ == '__main__':

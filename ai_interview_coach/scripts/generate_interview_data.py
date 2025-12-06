@@ -89,6 +89,10 @@ def generate_diverse_answers(question, num_answers=5):
 def main():
     """Generate interview dataset for annotation"""
     
+    # Set random seed for reproducibility
+    # This ensures all team members generate the same dataset
+    random.seed(42)
+    
     print("="*60)
     print("Interview Answer Generation for Manual Annotation")
     print("="*60)

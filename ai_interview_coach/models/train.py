@@ -199,7 +199,9 @@ class Trainer:
     
     def load_checkpoint(self, path):
         """Load model checkpoint"""
-        checkpoint = torch.load(path, map_location=self.device)
+        # Use weights_only=False for compatibility with older checkpoints
+        # that may contain numpy objects or other serialized data
+        checkpoint = torch.load(path, map_location=self.device, weights_only=False)
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.history = checkpoint.get('history', self.history)
@@ -227,7 +229,16 @@ def main():
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--learning_rate', type=float, default=2e-5)
     parser.add_argument('--weight_decay', type=float, default=0.01)
-    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    # Auto-detect best device
+    if torch.cuda.is_available():
+        default_device = 'cuda'
+    elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        default_device = 'mps'
+    else:
+        default_device = 'cpu'
+    
+    parser.add_argument('--device', type=str, default=default_device,
+                       help='Device to use: cuda, mps, or cpu')
     
     # Output arguments
     parser.add_argument('--save_dir', type=str, default='./checkpoints')
@@ -236,6 +247,12 @@ def main():
     
     print(f"Training Stage {args.stage}")
     print(f"Device: {args.device}")
+    if args.device == 'mps':
+        print("  (Using Apple Silicon GPU via MPS)")
+    elif args.device == 'cuda':
+        print(f"  (Using GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'N/A'})")
+    else:
+        print("  (Using CPU - training will be slower)")
     print(f"Batch size: {args.batch_size}")
     print(f"Learning rate: {args.learning_rate}")
     print(f"Epochs: {args.epochs}")

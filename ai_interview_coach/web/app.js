@@ -58,7 +58,7 @@ async function startSession() {
 }
 
 async function getQuestion(forceNew = false) {
-  if (!sessionId) return alert('请先启动会话');
+  if (!sessionId) return alert('Please start a session first');
   const url = `/api/session/${sessionId}/question${forceNew ? '?force_new=true' : ''}`;
   const q = await getJSON(url);
   setText('questionText', q.question_text || '');
@@ -66,28 +66,28 @@ async function getQuestion(forceNew = false) {
 }
 
 async function submitAnswer() {
-  if (!sessionId) return alert('请先启动会话');
+  if (!sessionId) return alert('Please start a session first');
   const answer = val('answer');
-  if (!answer) return alert('请先输入答案');
+  if (!answer) return alert('Please enter an answer first');
   const res = await getJSON(`/api/session/${sessionId}/answer`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ answer_text: answer }) });
-  setText('remaining', res.remaining != null ? `剩余题数：${res.remaining}` : '');
+  setText('remaining', res.remaining != null ? `Remaining questions: ${res.remaining}` : '');
   setText('feedback', JSON.stringify(res.feedback, null, 2));
 }
 
 async function showProgress() {
-  if (!sessionId) return alert('请先启动会话');
+  if (!sessionId) return alert('Please start a session first');
   const pr = await getJSON(`/api/session/${sessionId}/progress`);
   setText('progress', JSON.stringify(pr, null, 2));
 }
 
 async function showSummary() {
-  if (!sessionId) return alert('请先启动会话');
+  if (!sessionId) return alert('Please start a session first');
   const sm = await getJSON(`/api/session/${sessionId}/summary`);
   setText('summary', JSON.stringify(sm, null, 2));
 }
 
 async function exportHistory() {
-  if (!sessionId) return alert('请先启动会话');
+  if (!sessionId) return alert('Please start a session first');
   const data = await getJSON(`/api/session/${sessionId}/export`);
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);

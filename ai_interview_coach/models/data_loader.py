@@ -199,17 +199,22 @@ def create_data_loaders(asap_path=None, interview_path=None,
     Returns:
         dict with train/val/test DataLoaders
     """
+    import sys
+    print("  - Loading tokenizer...", flush=True)
     tokenizer = BertTokenizer.from_pretrained('distilbert-base-uncased')
+    print("  - Tokenizer loaded successfully", flush=True)
     
     datasets = []
     
     # Load ASAP if provided
     if asap_path and os.path.exists(asap_path):
+        print(f"  - Loading ASAP dataset from {asap_path}...", flush=True)
         asap_dataset = ASAPDataset(asap_path, tokenizer)
         datasets.append(asap_dataset)
     
     # Load interview data if provided
     if interview_path and os.path.exists(interview_path):
+        print(f"  - Loading interview dataset from {interview_path}...", flush=True)
         interview_dataset = InterviewDataset(interview_path, tokenizer)
         datasets.append(interview_dataset)
     
@@ -217,12 +222,14 @@ def create_data_loaders(asap_path=None, interview_path=None,
         raise ValueError("No valid dataset provided")
     
     # Combine datasets
+    print("  - Combining datasets...", flush=True)
     if len(datasets) > 1:
         combined = torch.utils.data.ConcatDataset(datasets)
     else:
         combined = datasets[0]
     
     # Split into train/val/test
+    print("  - Splitting dataset...", flush=True)
     total_size = len(combined)
     test_size = int(total_size * test_split)
     val_size = int(total_size * val_split)
@@ -234,17 +241,18 @@ def create_data_loaders(asap_path=None, interview_path=None,
     )
     
     # Create data loaders
+    print("  - Creating data loaders...", flush=True)
     train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=2
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=0  # Set to 0 to avoid multiprocessing issues
     )
     val_loader = DataLoader(
-        val_dataset, batch_size=batch_size, shuffle=False, num_workers=2
+        val_dataset, batch_size=batch_size, shuffle=False, num_workers=0
     )
     test_loader = DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=2
+        test_dataset, batch_size=batch_size, shuffle=False, num_workers=0
     )
     
-    print(f"Dataset sizes - Train: {train_size}, Val: {val_size}, Test: {test_size}")
+    print(f"  - Dataset sizes - Train: {train_size}, Val: {val_size}, Test: {test_size}", flush=True)
     
     return {
         'train': train_loader,

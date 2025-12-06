@@ -19,6 +19,16 @@ class SessionConfig(BaseModel):
     mode: Optional[str] = Field(default="free", description="'free' (default) or 'mock' for fixed-length interview")
     total_questions: Optional[int] = Field(default=None, ge=1, description="Total questions for mock interview")
     filters: Optional[FilterOptions] = None
+    scoring_method: Optional[str] = Field(
+        default="hybrid", 
+        description="Scoring method: 'heuristic' (rule-based), 'model' (BERT only), or 'hybrid' (default, combines both)"
+    )
+    model_weight: Optional[float] = Field(
+        default=0.7, 
+        ge=0.0, 
+        le=1.0, 
+        description="Weight for model score in hybrid mode (0.0-1.0, default 0.7 means 70% model, 30% heuristic)"
+    )
 
 
 class StartSessionRequest(BaseModel):
